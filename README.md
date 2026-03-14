@@ -70,16 +70,17 @@ graph TD
 1. Navigate to the root directory.
 2. Install Python dependencies:
    ```bash
-   pip install -r requirements.txt
+   pip install -r backend/requirements.txt
    ```
-3. Configure environment variables in a `.env` file (see `aws_config.py` for reference).
+3. Configure environment variables in a `.env` file (see `backend/aws_config.py` for reference).
 4. Run the API:
    ```bash
+   cd backend
    python app.py
    ```
 
 ### **Frontend Setup**
-1. Navigate to the `Video Compliance Dashboard` directory.
+1. Navigate to the `frontend` directory.
 2. Install dependencies:
    ```bash
    npm install

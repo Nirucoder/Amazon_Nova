@@ -1,9 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from backend.orchestrator import NovaFlowOrchestrator
-from backend.automation import NovaFlowAutomation
-from backend.safety import NovaFlowSafety
+from orchestrator import NovaFlowOrchestrator
+from automation import NovaFlowAutomation
+from safety import NovaFlowSafety
 import uvicorn
 import asyncio
 
