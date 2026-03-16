@@ -1,6 +1,14 @@
 import os
 import boto3
-from nova_act import NovaActClient
+try:
+    from nova_act import NovaActClient
+except ImportError:
+    # Mock class for local development if nova-act is not found
+    class NovaActClient:
+        def __init__(self, **kwargs): pass
+        async def create_session(self, **kwargs): return "mock_session_id"
+        async def act(self, **kwargs): return {"status": "mock_success"}
+        def get_live_view_url(self, session_id): return "http://example.com/live"
 from dotenv import load_dotenv
 
 load_dotenv()

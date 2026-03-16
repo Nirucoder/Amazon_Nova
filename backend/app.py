@@ -3,13 +3,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from orchestrator import NovaFlowOrchestrator
 from automation import NovaFlowAutomation
-from safety import NovaFlowSafety
 import uvicorn
-import asyncio
+import os
+from dotenv import load_dotenv
+
+# Import routers
+from auth import app as auth_app
+from projects import router as projects_router
+
+load_dotenv()
 
 app = FastAPI(title="NovaFlow API")
 
-# Enable CORS for the Vite dashboard
+# Enable CORS for the Vite/Next.js dashboard
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,39 +23,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Connect routers
+app.include_router(projects_router)
+app.mount("/auth", auth_app) # Keep auth as a sub-app or include its routes
+
 orchestrator = NovaFlowOrchestrator()
 automation = NovaFlowAutomation()
-safety = NovaFlowSafety()
-
-class GoalRequest(BaseModel):
-    goal: str
 
 @app.get("/status")
 async def get_status():
-    return {"status": "online", "agent": "NovaFlow"}
+    return {"status": "online", "agent": "NovaFlow", "version": "2.0-aws"}
+
+# New simplified goal execution for NovaFlow
+class GoalRequest(BaseModel):
+    goal: str
 
 @app.post("/execute")
 async def execute_goal(request: GoalRequest):
-    # 1. Decompose Goal
     steps = await orchestrator.decompose_goal(request.goal)
-    
-    # 2. Start Session (assuming first step provides starting point or we use a default)
-    # For demo: starting at google if no URL found
-    await automation.start_session("https://www.google.com")
-    
-    # 3. Simulate execution loop (Simplified for now)
-    results = []
-    # Implementation of step-by-step execution with safety checks would go here
-    
     return {
         "goal": request.goal,
         "steps": steps,
-        "live_view_url": automation.get_live_view_url()
+        "status": "plan_generated"
     }
-
-@app.get("/live-view")
-async def get_live_view():
-    return {"url": automation.get_live_view_url()}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
