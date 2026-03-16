@@ -113,7 +113,7 @@ export default function AgentsView() {
               className="glass-card overflow-hidden group border-white/5 relative bg-white/[0.01]"
             >
               <div className="aspect-[16/9] relative">
-                <img src={agent.image} className="w-full h-full object-cover opacity-50 grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000" />
+                <img src={agent.image} alt={`Neural Unit: ${agent.name}`} className="w-full h-full object-cover opacity-50 grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000" />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
                 <div className="absolute inset-0 p-8 flex flex-col justify-end space-y-2">
                   <div className="flex items-center space-x-2">

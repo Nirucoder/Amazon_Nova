@@ -21,8 +21,9 @@ export default function LoginPage() {
     setError("");
 
     const endpoint = isLogin ? "/auth/login" : "/auth/signup";
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
     try {
-      const response = await fetch(`http://localhost:8000${endpoint}`, {
+      const response = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password, role }),

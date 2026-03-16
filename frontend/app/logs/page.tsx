@@ -172,10 +172,10 @@ export default function LogsPage() {
                 </div>
 
                 <div className="flex space-x-2 pt-2">
-                  <button className="flex-1 bg-primary/20 border border-primary/30 hover:bg-primary transition-all rounded-xl py-3 flex items-center justify-center space-x-2 group/btn">
+                  <button title="View Details" className="flex-1 bg-primary/20 border border-primary/30 hover:bg-primary transition-all rounded-xl py-3 flex items-center justify-center space-x-2 group/btn">
                     <Eye className="w-4 h-4 text-primary group-hover/btn:text-white" />
                   </button>
-                  <button className="glass-card w-14 flex items-center justify-center hover:bg-white/10">
+                  <button title="More Options" className="glass-card w-14 flex items-center justify-center hover:bg-white/10">
                     <MoreVertical className="w-4 h-4 opacity-40" />
                   </button>
                 </div>

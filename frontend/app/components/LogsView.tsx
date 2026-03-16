@@ -43,7 +43,7 @@ export default function LogsView() {
             <p className="text-[10px] uppercase font-bold text-primary tracking-widest">REAL-TIME MONITORING</p>
           </div>
         </div>
-        <button className="bg-primary/10 border border-primary/30 p-2 rounded-lg text-primary">
+        <button title="Download Report" className="bg-primary/10 border border-primary/30 p-2 rounded-lg text-primary">
           <Download className="w-4 h-4" />
         </button>
       </div>
@@ -78,7 +78,7 @@ export default function LogsView() {
               className="glass-card overflow-hidden border-white/5 hover:border-primary/20 transition-all duration-500 group relative flex flex-col h-full bg-white/[0.01]"
             >
               <div className="aspect-video relative overflow-hidden">
-                <img src={incident.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                <img src={incident.image} alt={incident.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent opacity-60" />
                 {incident.badge && (
                   <span className={cn(
@@ -111,7 +111,7 @@ export default function LogsView() {
                     <Eye className="w-4 h-4" />
                     <span>In-Depth</span>
                   </button>
-                  <button className="glass-card w-14 flex items-center justify-center hover:bg-white/10 transition-colors border-white/5">
+                  <button title="More Options" className="glass-card w-14 flex items-center justify-center hover:bg-white/10 transition-colors border-white/5">
                     <MoreVertical className="w-4 h-4 opacity-40 hover:opacity-100" />
                   </button>
                 </div>

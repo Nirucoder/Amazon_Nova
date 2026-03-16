@@ -1,28 +1,36 @@
 import sys
 import subprocess
 import ffmpeg
-import pymongo
-import gridfs
+import boto3
 import io
+import os
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load configurations
+load_dotenv()
 
 # Configuration
-MONGO_URI = "mongodb://localhost:27017/"
-DB_NAME = "novaflow_video"
+S3_BUCKET = os.getenv("S3_BUCKET_NAME", "novaflow-media")
+DYNAMO_TABLE = os.getenv("DYNAMODB_TABLE_NAME", "NovaFlowFrames")
+AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 FPS = 1
 MAX_DURATION = 60  # seconds
+
+# Initialize AWS clients
+s3_client = boto3.client('s3', region_name=AWS_REGION)
+dynamodb = boto3.resource('dynamodb', region_name=AWS_REGION)
+table = dynamodb.Table(DYNAMO_TABLE)
 
 def get_video_duration(file_path):
     try:
         probe = ffmpeg.probe(file_path)
-        # Check for video stream
         video_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
         
         if not video_stream:
-            print(f"Warning: No video stream found in {file_path}. This file might be audio-only.")
+            print(f"Warning: No video stream found in {file_path}.")
             return None
             
-        # Get duration from stream or format
         duration = video_stream.get('duration')
         if duration is None:
             duration = probe.get('format', {}).get('duration')
@@ -44,16 +52,9 @@ def extract_and_store(file_path, video_id=None):
         print(f"Video duration {duration}s exceeds limit of {MAX_DURATION}s. Rejecting.")
         return
 
-    # Connect to MongoDB
-    client = pymongo.MongoClient(MONGO_URI)
-    db = client[DB_NAME]
-    fs = gridfs.GridFS(db)
-    metadata_col = db["frame_metadata"]
-
     print(f"Extracting frames from {file_path} for video_id: {video_id}...")
 
     # Extraction process using FFmpeg
-    # We pipe the output to stdout in jpeg format
     process = (
         ffmpeg
         .input(file_path)
@@ -73,8 +74,6 @@ def extract_and_store(file_path, video_id=None):
 
     frame_count = 0
     buffer = bytearray()
-    
-    # 1MB buffer for reading large 8K JPEG frames
     CHUNK_SIZE = 1024 * 1024 
 
     while True:
@@ -87,44 +86,44 @@ def extract_and_store(file_path, video_id=None):
         buffer.extend(chunk)
         
         while True:
-            # Find JPEG markers
             start = buffer.find(b"\xff\xd8")
             if start == -1:
-                # No start marker, if we are at the end, clear buffer
                 if not chunk and process.poll() is not None:
                     buffer.clear()
                 break
             
-            # Remove anything before the start marker
             if start > 0:
                 del buffer[:start]
             
-            # For 8K, we search for the end marker. 
-            # We want to be careful not to find a false positive, but usually \xff\xd9 is unique enough at the end of a block.
             end = buffer.find(b"\xff\xd9")
             if end == -1:
-                # Incomplete frame, need more data
                 break
                 
-            # Full frame found
             frame_data = bytes(buffer[:end+2])
             del buffer[:end+2]
             
-            # Store in GridFS
+            # Store in S3
+            s3_key = f"frames/{video_id}/frame_{frame_count:04d}.jpg"
             try:
-                gridfs_id = fs.put(frame_data, filename=f"{video_id}_frame_{frame_count}.jpg")
+                s3_client.put_object(
+                    Bucket=S3_BUCKET,
+                    Key=s3_key,
+                    Body=frame_data,
+                    ContentType='image/jpeg'
+                )
                 
-                # Store metadata
-                metadata_col.insert_one({
+                # Store metadata in DynamoDB
+                table.put_item(Item={
                     "video_id": video_id,
                     "frame_number": frame_count,
-                    "timestamp": frame_count / FPS,
-                    "gridfs_id": gridfs_id,
+                    "timestamp": str(frame_count / FPS),
+                    "s3_key": s3_key,
+                    "s3_bucket": S3_BUCKET,
                     "status": "pending_audit",
-                    "created_at": datetime.now()
+                    "created_at": datetime.now().isoformat()
                 })
                 
-                print(f"Stored frame {frame_count}")
+                print(f"Stored frame {frame_count} to S3 and DynamoDB")
                 frame_count += 1
             except Exception as e:
                 print(f"Error storing frame {frame_count}: {e}")
