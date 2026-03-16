@@ -5,10 +5,15 @@ try:
 except ImportError:
     # Mock class for local development if nova-act is not found
     class NovaActClient:
-        def __init__(self, **kwargs): pass
-        async def create_session(self, **kwargs): return "mock_session_id"
-        async def act(self, **kwargs): return {"status": "mock_success"}
-        def get_live_view_url(self, session_id): return "http://example.com/live"
+        def __init__(self, region_name=None, **kwargs):
+            self.region_name = region_name
+        async def create_session(self, initial_url=None, **kwargs):
+            return "mock_session_id"
+        async def act(self, session_id=None, goal=None, visual_context=False, **kwargs):
+            return {"status": "success", "goal": goal}
+        def get_live_view_url(self, session_id):
+            return "http://localhost:8000/mock-live-view"
+
 from dotenv import load_dotenv
 
 load_dotenv()
