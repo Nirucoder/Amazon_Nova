@@ -55,7 +55,7 @@ export default function AgentsPage() {
             <p className="text-[10px] uppercase font-bold text-primary tracking-[0.2em]">System Version 2.4.0 • STABLE</p>
           </div>
         </div>
-        <button className="p-2 glass-card opacity-40">
+        <button title="Dashboard" className="p-2 glass-card opacity-40">
            <LayoutDashboard className="w-5 h-5" />
         </button>
       </header>
@@ -99,7 +99,7 @@ export default function AgentsPage() {
           <div className="flex space-x-1.5">
             {[80, 70, 60, 40, 30].map((v, i) => (
               <div key={i} className="flex-1 h-3 bg-white/5 rounded-sm overflow-hidden">
-                 <div className="h-full bg-primary/40" style={{ width: `${v}%` }} />
+                 <div className="h-full bg-primary/40" style={{ ["--width" as any]: `${v}%`, width: 'var(--width)' }} />
               </div>
             ))}
           </div>
@@ -135,7 +135,7 @@ export default function AgentsPage() {
               className="glass-card overflow-hidden group border-white/5"
             >
               <div className="aspect-[21/9] relative">
-                <img src={agent.image} className="w-full h-full object-cover opacity-60 grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" />
+                <img src={agent.image} alt={`Neural Agent: ${agent.name}`} className="w-full h-full object-cover opacity-60 grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-r from-surface to-transparent" />
                 <div className="absolute inset-0 p-5 flex flex-col justify-center space-y-1">
                   <div className="flex items-center space-x-2">

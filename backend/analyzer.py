@@ -81,10 +81,20 @@ def analyze_frame_with_nova(image_bytes):
         )
         
         response_body = json.loads(response.get('body').read())
-        return response_body['output']['message']['content'][0]['text']
+        raw_text = response_body['output']['message']['content'][0]['text']
+        
+        # Extract JSON from the response text
+        import re
+        json_match = re.search(r'\{.*\}', raw_text, re.DOTALL)
+        if json_match:
+            try:
+                return json.loads(json_match.group(0))
+            except:
+                return {"scene_description": raw_text, "violations": [], "error": "JSON_PARSE_FAILED"}
+        return {"scene_description": raw_text, "violations": [], "raw_report": raw_text}
     except Exception as e:
         print(f"Error calling Amazon Nova: {e}")
-        return f"Analysis failed: {str(e)}"
+        return {"error": str(e), "violations": []}
 
 def check_pending_frames(video_id=None):
     """
@@ -129,24 +139,25 @@ def check_pending_frames(video_id=None):
             frame_bytes = s3_obj['Body'].read()
             
             # 2. Analyze the image with Nova
-            report = analyze_frame_with_nova(frame_bytes)
+            analysis = analyze_frame_with_nova(frame_bytes)
             
             print(f"--- FRAME {fnum} ANALYSIS REPORT (NOVA) ---")
-            print(report)
+            print(json.dumps(analysis, indent=2))
             print("-" * 40)
             
             # 3. Update DynamoDB
             table.update_item(
                 Key={'video_id': vid, 'frame_number': fnum},
-                UpdateExpression="SET #s = :s, analysis_report = :r, updated_at = :t",
+                UpdateExpression="SET #s = :s, analysis_report = :r, detections = :d, updated_at = :t",
                 ExpressionAttributeNames={"#s": "status"},
                 ExpressionAttributeValues={
                     ":s": "audited",
-                    ":r": report,
+                    ":r": json.dumps(analysis),
+                    ":d": analysis.get('violations', []),
                     ":t": datetime.now().isoformat()
                 }
             )
-            print(f"-> Successfully updated DynamoDB status to 'audited'.")
+            print(f"-> Successfully updated DynamoDB with {len(analysis.get('violations', []))} detections.")
             
         except Exception as e:
             print(f"-> Error auditing frame {fnum}: {e}")

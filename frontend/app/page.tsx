@@ -9,11 +9,14 @@ import { cn } from "./lib/utils";
 import HUDView from "./components/HUDView";
 import AgentsView from "./components/AgentsView";
 import LogsView from "./components/LogsView";
+import ClientPortal from "./components/ClientPortal";
+import ProjectDetailView from "./components/ProjectDetailView";
 
-type ViewType = "HUD" | "AGENTS" | "LOGS" | "PROFILE";
+type ViewType = "HUD" | "AGENTS" | "LOGS" | "PROFILE" | "CLIENT";
 
 export default function UnifiedCommandCenter() {
   const [activeView, setActiveView] = useState<ViewType>("HUD");
+  const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
   const { user, logout, isLoading } = useAuth();
 
   if (isLoading) {
@@ -61,6 +64,7 @@ export default function UnifiedCommandCenter() {
         <nav className="flex-1 px-4 mt-8 space-y-2 w-full">
           {[
             { label: "HUD Dashboard", icon: LayoutDashboard, view: "HUD" },
+            { label: "Client Portal", icon: LayoutDashboard, view: "CLIENT" },
             { label: "Agents Health", icon: Users, view: "AGENTS" },
             { label: "Violation Logs", icon: History, view: "LOGS" },
             { label: "System Config", icon: Settings, view: "PROFILE" },
@@ -101,6 +105,7 @@ export default function UnifiedCommandCenter() {
 
           <button 
             onClick={logout}
+            title="Secure Exit"
             className="w-full flex items-center space-x-4 p-4 rounded-2xl text-critical/60 hover:bg-critical/10 hover:text-critical transition-all group"
           >
             <LogOut className="w-6 h-6 shrink-0 group-hover:-translate-x-1 transition-transform" />
@@ -132,6 +137,20 @@ export default function UnifiedCommandCenter() {
           <div className="max-w-[1600px] mx-auto">
             <AnimatePresence mode="wait">
               {activeView === "HUD" && <HUDView key="hud" />}
+              {activeView === "CLIENT" && (
+                selectedSubmission ? (
+                  <ProjectDetailView 
+                    key="detail" 
+                    submission={selectedSubmission} 
+                    onBack={() => setSelectedSubmission(null)} 
+                  />
+                ) : (
+                  <ClientPortal 
+                    key="client" 
+                    onSelect={(sub) => setSelectedSubmission(sub)} 
+                  />
+                )
+              )}
               {activeView === "AGENTS" && <AgentsView key="agents" />}
               {activeView === "LOGS" && <LogsView key="logs" />}
               {activeView === "PROFILE" && (
