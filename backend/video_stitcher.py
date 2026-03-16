@@ -1,28 +1,39 @@
 import os
 import subprocess
-import pymongo
-import gridfs
+import boto3
 from dotenv import load_dotenv
+from datetime import datetime
 
 # Load configurations
 load_dotenv()
 
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
-DB_NAME = "novaflow_video"
+S3_BUCKET = os.getenv("S3_BUCKET_NAME", "novaflow-media")
+DYNAMO_TABLE = os.getenv("DYNAMODB_TABLE_NAME", "NovaFlowFrames")
+AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 
-client = pymongo.MongoClient(MONGO_URI)
-db = client[DB_NAME]
-fs = gridfs.GridFS(db)
-metadata_col = db["frame_metadata"]
+# Initialize AWS clients
+s3_client = boto3.client('s3', region_name=AWS_REGION)
+dynamodb = boto3.resource('dynamodb', region_name=AWS_REGION)
+table = dynamodb.Table(DYNAMO_TABLE)
 
 def reconstruct_video(video_id, output_filename="final_compliant_video.mp4"):
     """
-    Downloads all frames (preferring remediated versions) and stitches them using FFmpeg.
+    Downloads all frames from S3 (metadata from DynamoDB) and stitches them using FFmpeg.
     """
     print(f"Starting reconstruction for Video: {video_id}...")
     
-    # 1. Fetch all frames sorted by frame number
-    frames = list(metadata_col.find({"video_id": video_id}).sort("frame_number", 1))
+    # 1. Fetch all frames from DynamoDB
+    from boto3.dynamodb.conditions import Key
+    try:
+        response = table.query(
+            KeyConditionExpression=Key('video_id').eq(video_id)
+        )
+        frames = response.get('Items', [])
+        # Sort by frame number
+        frames.sort(key=lambda x: int(x['frame_number']))
+    except Exception as e:
+        print(f"DynamoDB Query Error: {e}")
+        return
     
     if not frames:
         print("No frames found for this video ID.")
@@ -32,24 +43,20 @@ def reconstruct_video(video_id, output_filename="final_compliant_video.mp4"):
     temp_dir = f"temp_frames_{video_id}"
     os.makedirs(temp_dir, exist_ok=True)
     
-    print(f"Downloading {len(frames)} frames to temporary directory...")
+    print(f"Downloading {len(frames)} frames from S3 to temporary directory...")
     
     for f in frames:
-        frame_num = f["frame_number"]
-        # Determine which gridfs_id to use (remediated has priority)
-        gridfs_id = f.get("clean_gridfs_id") or f.get("gridfs_id")
+        frame_num = int(f["frame_number"])
+        s3_key = f["s3_key"]
         
         try:
-            frame_data = fs.get(gridfs_id).read()
-            # Save using sequential naming for FFmpeg
+            # Download from S3
             frame_path = os.path.join(temp_dir, f"frame_{frame_num:04d}.jpg")
-            with open(frame_path, "wb") as file:
-                file.write(frame_data)
+            s3_client.download_file(S3_BUCKET, s3_key, frame_path)
         except Exception as e:
-            print(f"Error downloading frame {frame_num}: {e}")
+            print(f"Error downloading frame {frame_num} from S3: {e}")
 
     # 3. Trigger FFmpeg
-    # Command: ffmpeg -y -framerate 1 -i temp_frames/frame_%04d.jpg -c:v libx264 -pix_fmt yuv420p output.mp4
     input_pattern = os.path.join(temp_dir, "frame_%04d.jpg")
     ffmpeg_cmd = [
         "ffmpeg", "-y",
@@ -64,16 +71,13 @@ def reconstruct_video(video_id, output_filename="final_compliant_video.mp4"):
     try:
         subprocess.run(ffmpeg_cmd, check=True)
         print(f"Success! Final video created: {output_filename}")
-        
-        # 4. Optional: Upload to S3 (skipped in local POC but ready for production)
-        # s3.upload_file(output_filename, BUCKET_NAME, f"results/{output_filename}")
-        
     except subprocess.CalledProcessError as e:
         print(f"FFmpeg failed: {e}")
     finally:
         # Cleanup temp directory
-        # import shutil
-        # shutil.rmtree(temp_dir)
+        import shutil
+        print(f"Cleaning up {temp_dir}...")
+        # shutil.rmtree(temp_dir) # Uncomment for production cleanup
         pass
 
 if __name__ == "__main__":
