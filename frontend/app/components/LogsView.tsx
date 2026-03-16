@@ -23,66 +23,64 @@ const incidents = [
 ];
 
 export default function LogsView() {
-  const [activeTab, setActiveTab] = useState("All Flagged");
+  const [activeTab, setActiveTab] = useState("All Events");
 
   return (
     <motion.div 
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="space-y-8"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-12"
     >
       {/* Header Info */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/30">
+      <div className="flex items-center justify-between border-b border-white/5 pb-10">
+        <div className="flex items-center space-x-4">
+          <div className="w-12 h-12 bg-primary/5 rounded-2xl flex items-center justify-center border border-primary/20">
             <ShieldAlert className="text-primary w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight">Violation Log</h1>
-            <p className="text-[10px] uppercase font-bold text-primary tracking-widest">REAL-TIME MONITORING</p>
+            <h1 className="text-2xl font-bold tracking-tight text-white">Security Intelligence</h1>
+            <p className="text-[11px] font-semibold text-primary/60 uppercase tracking-[0.3em] mt-1">Live Anomaly Detection</p>
           </div>
         </div>
-        <button title="Download Report" className="bg-primary/10 border border-primary/30 p-2 rounded-lg text-primary">
-          <Download className="w-4 h-4" />
+        <button className="bg-white/[0.02] border border-white/5 px-6 py-3 rounded-xl text-[10px] font-bold text-white/40 uppercase tracking-widest hover:text-white transition-all">
+          Generate Audit
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex space-x-6 border-b border-white/5">
-        {["All Flagged", "High Risk", "Resolved"].map(tab => (
+      <div className="flex flex-wrap items-center gap-x-12 gap-y-4 border-b border-white/5">
+        {["All Events", "Severe", "Resolved"].map(tab => (
           <button 
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={cn(
-              "pb-3 text-sm font-bold transition-all relative",
-              activeTab === tab ? "text-primary" : "text-white/40"
+              "pb-6 text-xs font-bold transition-all relative uppercase tracking-widest whitespace-nowrap",
+              activeTab === tab ? "text-primary" : "text-white/20 hover:text-white/40"
             )}
           >
             {tab}
             {activeTab === tab && (
-              <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary shadow-glow" />
+              <motion.div layoutId="tab-underline-logs" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary shadow-glow" />
             )}
           </button>
         ))}
       </div>
 
       {/* Incident Grid */}
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
         <AnimatePresence mode="popLayout">
-          {incidents.map((incident, i) => (
+          {incidents.map((incident) => (
             <motion.div 
               key={incident.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="glass-card overflow-hidden border-white/5 hover:border-primary/20 transition-all duration-500 group relative flex flex-col h-full bg-white/[0.01]"
+              whileHover={{ y: -5 }}
+              className="bg-white/[0.02] border border-white/5 rounded-[2rem] overflow-hidden flex flex-col h-full hover:border-primary/20 transition-all"
             >
-              <div className="aspect-video relative overflow-hidden">
-                <img src={incident.image} alt={incident.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent opacity-60" />
+              <div className="aspect-video relative overflow-hidden bg-black/40">
+                <img src={incident.image} alt={incident.title} className="w-full h-full object-cover opacity-50 group-hover:scale-105 transition-transform" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#05010d] via-transparent to-transparent" />
                 {incident.badge && (
                   <span className={cn(
-                    "absolute top-4 left-4 px-3 py-1 text-[9px] font-black rounded-lg tracking-widest uppercase border border-white/20 backdrop-blur-md",
+                    "absolute top-6 left-6 px-3 py-1 text-[9px] font-bold rounded-lg tracking-widest uppercase border border-white/10 backdrop-blur-xl",
                     incident.badge === 'LIVE AI' ? "bg-critical/80 text-white" : "bg-primary/80 text-white"
                   )}>
                     {incident.badge}
@@ -90,29 +88,28 @@ export default function LogsView() {
                 )}
               </div>
               
-              <div className="p-6 space-y-4 flex flex-col flex-1">
-                <div className="flex justify-between items-start">
-                  <h3 className="font-black text-lg leading-tight text-white/90 group-hover:text-primary transition-colors">{incident.title}</h3>
-                  <div className={cn(
-                    "w-2 h-2 rounded-full mt-1.5 shrink-0",
-                    incident.status === 'CRITICAL' ? "bg-critical shadow-[0_0_10px_rgba(239,68,68,0.8)]" : 
-                    incident.status === 'MEDIUM' ? "bg-accent shadow-[0_0_10px_rgba(168,85,247,0.8)]" : "bg-success"
-                  )} />
+              <div className="p-10 space-y-6 flex flex-col flex-1">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className={cn(
+                      "text-[9px] font-bold uppercase tracking-widest",
+                      incident.status === 'CRITICAL' ? "text-critical" : "text-primary"
+                    )}>
+                      {incident.status}
+                    </span>
+                    <span className="text-[9px] font-bold text-white/10 uppercase">{incident.time}</span>
+                  </div>
+                  <h3 className="font-bold text-lg text-white leading-snug">{incident.title}</h3>
                 </div>
-                <p className="text-xs text-white/40 leading-relaxed font-bold flex-1">{incident.description}</p>
                 
-                <div className="flex items-center justify-between text-[9px] font-black text-white/20 uppercase tracking-widest pt-4 border-t border-white/5">
-                   <span>{incident.location}</span>
-                   <span>{incident.time}</span>
-                </div>
-
-                <div className="flex space-x-3 pt-2">
-                  <button className="flex-1 bg-primary/10 border border-primary/20 hover:bg-primary text-primary hover:text-white transition-all duration-300 rounded-xl py-3 font-black text-[10px] tracking-widest uppercase flex items-center justify-center space-x-2">
-                    <Eye className="w-4 h-4" />
-                    <span>In-Depth</span>
+                <p className="text-xs text-white/30 leading-relaxed font-medium flex-1">{incident.description}</p>
+                
+                <div className="flex items-center space-x-3 pt-6 border-t border-white/5">
+                  <button className="flex-1 bg-white/5 border border-white/5 hover:bg-primary text-white text-[10px] font-bold px-4 py-3 rounded-xl uppercase tracking-widest transition-all">
+                    View Frame
                   </button>
-                  <button title="More Options" className="glass-card w-14 flex items-center justify-center hover:bg-white/10 transition-colors border-white/5">
-                    <MoreVertical className="w-4 h-4 opacity-40 hover:opacity-100" />
+                  <button className="p-3 bg-white/5 border border-white/5 rounded-xl text-white/20 hover:text-white transition-all">
+                    <MoreVertical className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -123,3 +120,4 @@ export default function LogsView() {
     </motion.div>
   );
 }
+

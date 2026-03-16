@@ -15,9 +15,22 @@ import ProjectDetailView from "./components/ProjectDetailView";
 type ViewType = "HUD" | "AGENTS" | "LOGS" | "PROFILE" | "CLIENT";
 
 export default function UnifiedCommandCenter() {
+  const [mounted, setMounted] = useState(false);
+  const { user, logout, isLoading: authLoading } = useAuth();
   const [activeView, setActiveView] = useState<ViewType>("HUD");
   const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
-  const { user, logout, isLoading } = useAuth();
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (user?.role === "client") {
+      setActiveView("CLIENT");
+    }
+  }, [user]);
+
+  const isLoading = authLoading || !mounted;
 
   if (isLoading) {
     return (
@@ -32,6 +45,7 @@ export default function UnifiedCommandCenter() {
   }
 
   if (!user) return null; // Logic in AuthContext handles redirect to /login
+
 
   return (
     <div className="flex h-screen bg-background overflow-hidden text-foreground">
@@ -50,91 +64,96 @@ export default function UnifiedCommandCenter() {
       </div>
 
       {/* Sidebar Navigation */}
-      <aside className="w-20 lg:w-64 border-r border-white/5 bg-surface/30 backdrop-blur-3xl z-50 flex flex-col items-center lg:items-stretch transition-all duration-500">
-        <div className="p-6 flex items-center space-x-3">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-glow shrink-0">
-            <Command className="text-white w-6 h-6" />
+      <aside className="w-20 lg:w-72 border-r border-white/5 bg-[#0a0516]/50 backdrop-blur-2xl z-50 flex flex-col transition-all duration-500">
+        <div className="p-8 flex items-center space-x-4">
+          <div className="w-11 h-11 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center shadow-sm shrink-0">
+            <Command className="text-primary w-6 h-6" />
           </div>
           <div className="hidden lg:block overflow-hidden whitespace-nowrap">
-            <h1 className="text-xl font-bold tracking-tight">NovaFlow</h1>
-            <p className="text-[10px] uppercase font-bold text-primary tracking-[0.2em]">Command Center</p>
+            <h1 className="text-xl font-bold tracking-tight text-white">NovaFlow</h1>
+            <p className="text-[10px] uppercase font-bold text-primary/60 tracking-widest">v2.4 Control</p>
           </div>
         </div>
 
-        <nav className="flex-1 px-4 mt-8 space-y-2 w-full">
+        <nav className="flex-1 px-4 mt-6 space-y-1 w-full">
           {[
-            { label: "HUD Dashboard", icon: LayoutDashboard, view: "HUD" },
-            { label: "Client Portal", icon: LayoutDashboard, view: "CLIENT" },
-            { label: "Agents Health", icon: Users, view: "AGENTS" },
-            { label: "Violation Logs", icon: History, view: "LOGS" },
-            { label: "System Config", icon: Settings, view: "PROFILE" },
-          ].map((item, i) => (
+            { label: "Dashboard", icon: LayoutDashboard, view: "HUD", roles: ["agent"] },
+            { label: "Client Portal", icon: LayoutDashboard, view: "CLIENT", roles: ["agent", "client"] },
+            { label: "Agents", icon: Users, view: "AGENTS", roles: ["agent"] },
+            { label: "Compliance Logs", icon: History, view: "LOGS", roles: ["agent"] },
+            { label: "Settings", icon: Settings, view: "PROFILE", roles: ["agent", "client"] },
+          ]
+          .filter(item => item.roles.includes(user?.role || ""))
+          .map((item, i) => (
             <button 
               key={i} 
               onClick={() => setActiveView(item.view as ViewType)}
               className={cn(
-                "w-full flex items-center space-x-4 p-4 rounded-2xl transition-all duration-300 group",
+                "w-full flex items-center space-x-4 p-4 rounded-xl transition-all duration-200 group relative",
                 activeView === item.view 
-                  ? "bg-primary text-white shadow-glow" 
-                  : "text-white/40 hover:bg-white/5 hover:text-white"
+                  ? "bg-white/5 text-primary" 
+                  : "text-white/40 hover:bg-white/[0.02] hover:text-white"
               )}
             >
-              <item.icon className={cn("w-6 h-6 shrink-0", activeView === item.view ? "drop-shadow-glow" : "group-hover:scale-110 transition-transform")} />
-              <span className="hidden lg:block font-bold text-sm tracking-wide">{item.label}</span>
+              <item.icon className={cn("w-5 h-5 shrink-0 transition-transform group-hover:scale-110", activeView === item.view ? "text-primary" : "")} />
+              <span className="hidden lg:block font-medium text-sm tracking-tight">{item.label}</span>
               {activeView === item.view && (
-                <motion.div layoutId="nav-pill" className="absolute left-0 w-1 h-8 bg-white lg:hidden" />
+                <motion.div layoutId="nav-pill-desktop" className="absolute left-0 w-1 h-6 bg-primary rounded-r-full hidden lg:block" />
               )}
             </button>
           ))}
         </nav>
 
-        <div className="p-6 w-full space-y-4">
-          <button 
-            onClick={() => setActiveView("PROFILE")}
-            className={cn(
-              "w-full flex items-center space-x-4 p-4 rounded-2xl transition-all group",
-              activeView === "PROFILE" ? "bg-white/10 text-white" : "text-white/40 hover:bg-white/5 hover:text-white"
-            )}
-          >
-            <UserCircle className="w-6 h-6 shrink-0 group-hover:rotate-12 transition-transform" />
-            <div className="hidden lg:block text-left overflow-hidden">
-               <p className="text-sm font-bold truncate">{user.username}</p>
-               <p className="text-[10px] uppercase font-black tracking-tighter text-primary">Status: Secure [{user.role}]</p>
-            </div>
-          </button>
+        <div className="p-8 w-full mt-auto border-t border-white/5">
+          <div className="flex flex-col space-y-3">
+            <button 
+              onClick={() => setActiveView("PROFILE")}
+              className={cn(
+                "w-full flex items-center space-x-4 p-3 rounded-xl transition-all group",
+                activeView === "PROFILE" ? "bg-white/5 text-white" : "text-white/40 hover:bg-white/[0.02] hover:text-white"
+              )}
+            >
+              <UserCircle className="w-5 h-5 shrink-0 group-hover:text-primary transition-colors" />
+              <div className="hidden lg:block text-left overflow-hidden">
+                 <p className="text-xs font-semibold truncate text-white leading-tight">{user.username}</p>
+                 <p className="text-[9px] uppercase font-bold text-primary/40 tracking-[0.2em] mt-0.5">Secure Node</p>
+              </div>
+            </button>
 
-          <button 
-            onClick={logout}
-            title="Secure Exit"
-            className="w-full flex items-center space-x-4 p-4 rounded-2xl text-critical/60 hover:bg-critical/10 hover:text-critical transition-all group"
-          >
-            <LogOut className="w-6 h-6 shrink-0 group-hover:-translate-x-1 transition-transform" />
-            <span className="hidden lg:block font-bold text-sm tracking-wide">SECURE_EXIT</span>
-          </button>
+            <button 
+              onClick={logout}
+              className="w-full flex items-center space-x-4 p-3 rounded-xl text-critical/40 hover:bg-critical/5 hover:text-critical transition-all group"
+            >
+              <LogOut className="w-5 h-5 shrink-0 transition-transform group-hover:-translate-x-1" />
+              <span className="hidden lg:block font-bold text-[10px] uppercase tracking-widest">Sign Out</span>
+            </button>
+          </div>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden relative z-10">
-        <header className="h-20 border-b border-white/5 bg-background/20 backdrop-blur-md flex items-center justify-between px-8 shrink-0">
-          <div className="flex items-center space-x-4">
-             <div className="w-1.5 h-6 bg-primary rounded-full shadow-glow" />
-             <h2 className="text-xl font-black uppercase tracking-widest text-white/90">{activeView} INTERFACE</h2>
-          </div>
+      <div className="flex-1 flex flex-col h-screen overflow-hidden relative z-10 bg-[#05010d]">
+        <header className="h-24 border-b border-white/5 bg-background/40 backdrop-blur-xl flex items-center justify-between px-10 shrink-0">
           <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2 glass-card px-4 py-2 border-white/5">
-              <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-              <span className="text-[10px] font-black tracking-[0.2em] uppercase text-white/60">Node: US-EAST-1 (OPTIMAL)</span>
+             <div className="flex flex-col">
+               <h2 className="text-xs font-bold uppercase tracking-[0.4em] text-white/50 leading-none">{activeView}</h2>
+               <div className="h-px w-8 bg-primary mt-3" />
+             </div>
+          </div>
+          <div className="flex items-center space-x-8">
+            <div className="hidden md:flex items-center space-x-3 bg-white/[0.02] border border-white/5 px-4 py-2 rounded-xl">
+              <span className="w-1.5 h-1.5 rounded-full bg-success shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" />
+              <span className="text-[9px] font-bold tracking-widest uppercase text-white/40">Sync: US-EAST-1</span>
             </div>
-            <button className="p-2.5 glass-card hover:bg-white/10 transition-colors relative">
-              <Bell className="w-5 h-5 text-white/80" />
-              <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-critical rounded-full border-2 border-background" />
+            <button className="p-3 bg-white/[0.02] border border-white/5 rounded-xl hover:bg-white/5 transition-all relative group">
+              <Bell className="w-5 h-5 text-white/40 group-hover:text-white transition-colors" />
+              <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-critical rounded-full" />
             </button>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-          <div className="max-w-[1600px] mx-auto">
+        <main className="flex-1 overflow-y-auto p-10 custom-scrollbar">
+          <div className="max-w-7xl mx-auto">
             <AnimatePresence mode="wait">
               {activeView === "HUD" && <HUDView key="hud" />}
               {activeView === "CLIENT" && (

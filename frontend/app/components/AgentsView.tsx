@@ -18,47 +18,46 @@ function cn(...inputs: ClassValue[]) {
 
 export default function AgentsView() {
   const stats = [
-    { label: "System CPU", value: "42%", delta: "-5%", color: "primary" },
-    { label: "System GPU", value: "68%", delta: "+12%", color: "accent" },
+    { label: "Logic Load", value: "42%", delta: "-5%", color: "primary" },
+    { label: "Vision Latency", value: "68ms", delta: "+12%", color: "accent" },
   ];
 
   const agents = [
-    { name: "Router-Agent", status: "ACTIVE", type: "Traffic Orchestration V1.2", image: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=2000&auto=format&fit=crop" },
-    { name: "Executor-7", status: "PROCESSING", type: "Task Execution Pipeline", image: "https://images.unsplash.com/photo-1633167606207-d840b5070fc2?q=80&w=2000&auto=format&fit=crop" },
+    { name: "Core-Act-01", status: "ONLINE", type: "Browser Automation Controller", image: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=2000&auto=format&fit=crop" },
+    { name: "Nova-Vision-7", status: "SYNCING", type: "Multi-modal Analysis Node", image: "https://images.unsplash.com/photo-1633167606207-d840b5070fc2?q=80&w=2000&auto=format&fit=crop" },
   ];
 
   return (
     <motion.div 
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="space-y-8"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-12"
     >
       {/* Header Info */}
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 glass-card flex items-center justify-center border-primary/30">
-          <Bot className="text-primary w-6 h-6 drop-shadow-glow" />
+      <div className="flex items-center space-x-4 border-b border-white/5 pb-10">
+        <div className="w-12 h-12 bg-primary/5 rounded-2xl flex items-center justify-center border border-primary/20">
+          <Bot className="text-primary w-6 h-6" />
         </div>
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Active Agents</h1>
-          <p className="text-[10px] uppercase font-bold text-primary tracking-[0.2em]">3 ONLINE • SYSTEM STABLE</p>
+          <h1 className="text-2xl font-bold tracking-tight text-white">Neural Cluster</h1>
+          <p className="text-[11px] font-semibold text-primary/60 uppercase tracking-[0.3em] mt-1">Status: Cluster Optimal</p>
         </div>
       </div>
 
-      {/* System Stats & Node Overview Combined Row */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+      {/* System Stats Row */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-10">
           {stats.map((stat, i) => (
-            <div key={i} className="glass-card p-8 space-y-6">
-              <div className="flex justify-between items-center text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">
+            <div key={i} className="bg-white/[0.02] border border-white/5 rounded-[2rem] p-10 space-y-6">
+              <div className="flex justify-between items-center text-white/20 text-[10px] font-bold uppercase tracking-widest">
                 <span>{stat.label}</span>
-                <Cpu className="w-5 h-5 text-primary drop-shadow-glow" />
+                <Cpu className="w-5 h-5 text-primary/40" />
               </div>
               <div className="flex items-baseline space-x-4">
-                <span className="text-5xl font-black text-white tracking-tighter">{stat.value}</span>
+                <span className="text-5xl font-bold text-white tracking-tighter">{stat.value}</span>
                 <span className={cn(
-                  "text-[10px] font-black px-3 py-1 rounded-lg tracking-widest",
-                  stat.delta.startsWith('+') ? "bg-success/20 text-success" : "bg-critical/20 text-critical"
+                  "text-[10px] font-bold px-3 py-1 rounded-lg tracking-widest uppercase",
+                  stat.delta.startsWith('+') ? "text-success bg-success/5" : "text-critical bg-critical/5"
                 )}>
                   {stat.delta}
                 </span>
@@ -66,62 +65,60 @@ export default function AgentsView() {
               <div className="h-1 bg-white/5 rounded-full overflow-hidden">
                 <motion.div
                    initial={{ width: 0 }}
-                   animate={{ width: stat.value }}
+                   animate={{ width: parseInt(stat.value) + "%" }}
                    transition={{ duration: 1.5, ease: "easeOut" }}
-                   className={cn("h-full shadow-glow", stat.color === 'primary' ? "bg-primary" : "bg-accent")}
+                   className={cn("h-full", stat.color === 'primary' ? "bg-primary" : "bg-accent")}
                 />
               </div>
             </div>
           ))}
         </div>
 
-        <div className="lg:col-span-4 glass-card p-8 bg-primary/5 border-primary/20 flex flex-col justify-center space-y-6">
-           <div>
-              <p className="text-xs font-black text-primary uppercase tracking-[0.3em] mb-3">Runtime Stability</p>
-              <div className="flex items-center space-x-6">
-                 <div className="flex-1 h-20 glass-card border-success/30 flex flex-col items-center justify-center">
-                    <span className="text-xl font-black text-success">99.9%</span>
-                    <span className="text-[8px] font-bold opacity-40 uppercase">Uptime</span>
+        <div className="lg:col-span-4 bg-primary/[0.02] border border-primary/10 rounded-[2rem] p-10 flex flex-col justify-center space-y-8">
+           <div className="space-y-6">
+              <p className="text-[10px] font-bold text-primary/60 uppercase tracking-widest text-center">Protocol Stability</p>
+              <div className="grid grid-cols-2 gap-6">
+                 <div className="bg-white/[0.02] border border-white/5 rounded-2xl py-6 flex flex-col items-center justify-center">
+                    <span className="text-xl font-bold text-white">99.9%</span>
+                    <span className="text-[8px] font-semibold text-white/20 uppercase mt-1">Uptime</span>
                  </div>
-                 <div className="flex-1 h-20 glass-card border-primary/30 flex flex-col items-center justify-center">
-                    <span className="text-xl font-black text-primary">2.1ms</span>
-                    <span className="text-[8px] font-bold opacity-40 uppercase">Latency</span>
+                 <div className="bg-white/[0.02] border border-white/5 rounded-2xl py-6 flex flex-col items-center justify-center">
+                    <span className="text-xl font-bold text-primary">2.1ms</span>
+                    <span className="text-[8px] font-semibold text-white/20 uppercase mt-1">Sync</span>
                  </div>
               </div>
            </div>
-           <button className="w-full bg-primary hover:bg-accent text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-glow flex items-center justify-center space-x-3 group">
-              <Zap className="w-4 h-4 group-hover:scale-125 transition-transform" />
-              <span>Scale Cluster</span>
+           <button className="w-full h-14 bg-primary text-white rounded-2xl font-bold text-xs uppercase tracking-widest transition-all hover:translate-y-[-2px] shadow-lg flex items-center justify-center space-x-3">
+              <Zap className="w-4 h-4" />
+              <span>Expand Cluster</span>
            </button>
         </div>
       </section>
 
-      {/* Agents List in Horizontal Grid */}
-      <section className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xs uppercase font-black tracking-[0.3em] text-white/40">Active Neural Units</h2>
-          <span className="text-[10px] font-black text-primary tracking-widest">3 OPERATIONAL UNITS</span>
+      {/* Agents List */}
+      <section className="space-y-8">
+        <div className="flex items-center justify-between border-b border-white/5 pb-4">
+          <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] text-white/20">Operational Units</h2>
+          <span className="text-[10px] font-bold text-primary/40 tracking-widest">2 ACTIVE NODES</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10">
           {agents.map((agent, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.1 }}
-              className="glass-card overflow-hidden group border-white/5 relative bg-white/[0.01]"
+              whileHover={{ y: -5 }}
+              className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] overflow-hidden group relative"
             >
-              <div className="aspect-[16/9] relative">
-                <img src={agent.image} alt={`Neural Unit: ${agent.name}`} className="w-full h-full object-cover opacity-50 grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000" />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
-                <div className="absolute inset-0 p-8 flex flex-col justify-end space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 rounded-full bg-success animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
-                    <span className="text-[9px] font-black tracking-[0.2em] uppercase text-success">{agent.status}</span>
+              <div className="aspect-[21/9] relative">
+                <img src={agent.image} alt={agent.name} className="w-full h-full object-cover opacity-40 grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#05010d] via-[#05010d]/40 to-transparent" />
+                <div className="absolute inset-0 p-10 flex flex-col justify-end space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 rounded-full bg-success shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
+                    <span className="text-[10px] font-bold tracking-widest uppercase text-success">{agent.status}</span>
                   </div>
-                  <h3 className="font-black text-xl text-white tracking-widest uppercase">{agent.name}</h3>
-                  <p className="text-[10px] font-bold text-white/30 truncate">{agent.type}</p>
+                  <h3 className="font-bold text-2xl text-white tracking-tight">{agent.name}</h3>
+                  <p className="text-xs font-medium text-white/30">{agent.type}</p>
                 </div>
               </div>
             </motion.div>
@@ -129,16 +126,17 @@ export default function AgentsView() {
         </div>
       </section>
 
-      {/* Emergency Console */}
-      <section className="glass-card p-4 border-critical/30 bg-critical/5 flex items-center justify-between">
-         <div className="flex items-center space-x-3">
+      {/* Emergency Overrides */}
+      <footer className="bg-critical/[0.02] border border-critical/10 p-6 rounded-[2rem] flex items-center justify-between px-10">
+         <div className="flex items-center space-x-4">
             <AlertTriangle className="w-5 h-5 text-critical" />
-            <h3 className="text-[10px] font-black text-critical uppercase tracking-widest">Override</h3>
+            <h3 className="text-[11px] font-bold text-critical/60 uppercase tracking-[0.3em]">Advanced Cluster Overrides</h3>
          </div>
-         <button className="bg-critical/20 text-critical text-[10px] font-black px-4 py-2 rounded-lg border border-critical/30">
-           TERMINATE
+         <button className="bg-critical text-white text-[10px] font-bold px-8 py-3 rounded-xl uppercase tracking-widest hover:bg-critical/80 transition-all">
+           Purge Cache
          </button>
-      </section>
+      </footer>
     </motion.div>
   );
 }
+

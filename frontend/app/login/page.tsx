@@ -74,7 +74,7 @@ export default function LoginPage() {
           </div>
 
           {/* Role Selection */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-6">
             {[
               { id: "client", label: "Client", icon: User, desc: "Organization Owner" },
               { id: "agent", label: "Agent", icon: Shield, desc: "Operational Unit" }
@@ -85,16 +85,16 @@ export default function LoginPage() {
                 className={cn(
                   "p-6 rounded-3xl border transition-all duration-500 text-left group relative overflow-hidden",
                   role === item.id 
-                    ? "bg-primary border-primary shadow-glow text-white" 
+                    ? "bg-primary border-primary shadow-2xl text-white" 
                     : "bg-white/[0.02] border-white/10 text-white/40 hover:border-white/20 hover:bg-white/[0.04]"
                 )}
               >
-                <item.icon className={cn("w-6 h-6 mb-3", role === item.id ? "text-white" : "text-primary/60 group-hover:scale-110 transition-transform")} />
-                <p className="font-black text-sm uppercase tracking-widest">{item.label}</p>
-                <p className="text-[10px] font-bold opacity-60 mt-1 uppercase tracking-tighter">{item.desc}</p>
+                <item.icon className={cn("w-8 h-8 mb-3", role === item.id ? "text-white" : "text-primary/60 group-hover:scale-110 transition-transform")} />
+                <p className="font-bold text-lg uppercase tracking-widest leading-none">{item.label}</p>
+                <p className="text-xs font-semibold opacity-60 mt-1 uppercase tracking-widest leading-none">{item.desc}</p>
                 {role === item.id && (
-                  <motion.div layoutId="role-bg" className="absolute top-0 right-0 p-2">
-                    <Sparkles className="w-3 h-3 text-white/40 animate-pulse" />
+                  <motion.div layoutId="role-bg" className="absolute top-4 right-4 p-2">
+                    <Sparkles className="w-4 h-4 text-white/40 animate-pulse" />
                   </motion.div>
                 )}
               </button>
